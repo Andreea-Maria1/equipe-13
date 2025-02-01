@@ -4,7 +4,6 @@ import serial
 import time
 # import openmeteo_requests
 
-import requests_cache
 import pandas as pd
 from retry_requests import retry
 import os  # Needed for file operations in capture endpoint
