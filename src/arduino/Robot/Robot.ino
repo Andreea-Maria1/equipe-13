@@ -16,10 +16,43 @@ DriveBase robot(&FR_Motor, &FL_Motor, &BR_Motor, &BL_Motor);
 void setup() {
   Serial.begin(250000);
   
-  // Exemple de commande pour déplacer le robot
-  robot.drive(200, 200, 200);
+  // Exemple de receivedDatae pour déplacer le robot
+  while (!Serial) {
+    ;
+  }
 }
 
 void loop() {
-  // Votre code principal ici
+  if (Serial.available() > 0) {
+    String receivedData = Serial.readStringUntil('\n');
+    Serial.print("Received: ");
+    Serial.println(receivedData);
+    receivedData.trim();
+
+    if (receivedData == "forward") {
+      robot.drive(200, 0, 0);
+    }
+    else if (receivedData == "backward") {
+      robot.drive(-200, 0, 0);
+    }
+    else if (receivedData == "left") {
+      robot.drive(0, -200, 0);
+    }
+    else if (receivedData == "right") {
+      robot.drive(0, 200, 0);
+    }
+    else if (receivedData == "rotate_left") {
+      robot.drive(0, 0, -200);
+    }
+    else if (receivedData == "rotate_right") {
+      robot.drive(0, 0, 200);
+    }
+    else if (receivedData == "stop") {
+      robot.drive(0, 0, 0);
+    }
+    else {
+      Serial.println("Unknown receivedData.");
+    }
+    delay(10);
+  }
 }
