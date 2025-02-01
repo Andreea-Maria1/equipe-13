@@ -17,19 +17,25 @@ h1 {
 }
 
 /* Weather Display Styling */
-#weather-display {
+#weather-info {
     background: #fff;
     border: 1px solid #ddd;
     border-radius: 8px;
-    padding: 10px 20px;
+    padding: 20px;
     margin: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
 }
 
-#weather-display h2 {
+#weather-info h2 {
     margin: 0 0 10px;
-    font-size: 20px;
+    font-size: 24px;
+    color: #333;
+}
+
+#weather-info p {
+    margin: 5px 0;
+    font-size: 18px;
 }
 
 /* Container for video and control panel */
@@ -101,7 +107,7 @@ h1 {
     }
 }
 
-/* Optional: Style for the screenshot control section */
+/* Screenshot Control Styling */
 #screenshot-control {
     margin-top: 20px;
     text-align: center;

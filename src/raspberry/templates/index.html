@@ -3,20 +3,29 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Arduino Control & Video Stream</title>
+    <title>Arduino Control, Video Stream & Weather</title>
     <!-- Import a Google Font -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
-    <!-- Link to the external CSS file -->
+    <!-- Link to your external CSS file -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
 <body>
-    <h1>Arduino Control Test & Video Stream</h1>
+    <h1>Arduino Control Test, Video Stream & Weather</h1>
+
+    <!-- Weather Info Section -->
+    <div id="weather-info" style="text-align: center; margin-bottom: 20px;">
+        <h2>Current Weather</h2>
+        <p>Temperature: <span id="temp">--</span> °C</p>
+        <p>Relative Humidity: <span id="humidity">--</span> %</p>
+        <p>Precipitation: <span id="precipitation">--</span> mm</p>
+        <p>Wind Speed: <span id="wind_speed">--</span> km/h</p>
+    </div>
+
     <div class="container">
-        <!-- Display the video stream -->
+        <!-- Video Stream -->
         <img src="{{ url_for('video_feed') }}" alt="Video Stream" class="video-stream">
-        <!-- Control panel for eight directions arranged in a 3x3 grid.
-             The center cell now contains the Stop button. -->
+        <!-- Control Panel for 8 directions arranged in a 3x3 grid (center button is 'Stop') -->
         <div id="control-panel">
             <!-- Row 1 -->
             <button data-direction="forward-left" onmousedown="startSending('forward-left')" onmouseup="stopSending()"
@@ -40,6 +49,7 @@
             <button data-direction="backward-right" onmousedown="startSending('backward-right')"
                 onmouseup="stopSending()" onmouseleave="stopSending()">Backward Right</button>
         </div>
+
         <!-- Capture Screenshot Button -->
         <div id="screenshot-control" style="text-align: center; margin-top: 20px;">
             <button id="capture-btn" onclick="captureScreenshot()">Capture Screenshot</button>
@@ -47,24 +57,22 @@
         </div>
     </div>
 
+    <!-- JavaScript Section -->
     <script>
         let intervalId = null;
 
-        // Called when a button is pressed down
+        // Called when a control button is pressed down
         function startSending(direction) {
-            // Clear any existing interval to avoid duplicate timers
             if (intervalId !== null) {
                 clearInterval(intervalId);
             }
-            // Send the command immediately
             sendCommand(direction);
-            // Then continue sending the command every 100ms while the button is held down
             intervalId = setInterval(() => {
                 sendCommand(direction);
             }, 100);
         }
 
-        // Called when the button is released or the pointer leaves the button
+        // Called when the control button is released or the pointer leaves the button
         function stopSending() {
             if (intervalId !== null) {
                 clearInterval(intervalId);
@@ -72,13 +80,11 @@
             }
         }
 
-        // Sends the control command to the Flask endpoint via fetch
+        // Sends the control command via AJAX
         function sendCommand(direction) {
             fetch(`/control_command/${direction}`)
                 .then(response => response.text())
-                .then(data => {
-                    console.log(`Command ${direction} sent, response: ${data}`);
-                })
+                .then(data => console.log(`Command ${direction} sent, response: ${data}`))
                 .catch(error => console.error('Error sending command:', error));
         }
 
@@ -91,6 +97,23 @@
                 })
                 .catch(error => console.error('Error capturing screenshot:', error));
         }
+
+        // Function to update weather info by fetching data from the /weather_data endpoint
+        function updateWeather() {
+            fetch('/weather_data')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('temp').textContent = data.temperature;
+                    document.getElementById('humidity').textContent = data.relative_humidity;
+                    document.getElementById('precipitation').textContent = data.precipitation;
+                    document.getElementById('wind_speed').textContent = data.wind_speed;
+                })
+                .catch(error => console.error('Error fetching weather data:', error));
+        }
+
+        // Update weather on page load and then every hour (3600000 ms)
+        updateWeather();
+        setInterval(updateWeather, 3600000);
     </script>
 </body>
 

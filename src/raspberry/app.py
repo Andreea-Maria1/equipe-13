@@ -1,10 +1,13 @@
-from flask import Flask, render_template, redirect, url_for, Response
+from flask import Flask, render_template, redirect, url_for, Response, jsonify
 import cv2
 import serial
 import time
-import python_weather
-import asyncio
-import os
+import openmeteo_requests
+
+import requests_cache
+import pandas as pd
+from retry_requests import retry
+import os  # Needed for file operations in capture endpoint
 
 app = Flask(__name__)
 
@@ -126,6 +129,47 @@ def capture():
 
     # Return a link to the saved screenshot
     return f"Screenshot saved as <a href='/static/screenshots/{filename}' target='_blank'>{filename}</a>"
+
+# ================= Weather API Code =================
+# Setup the Open-Meteo API client with cache and retry on error
+cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
+retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
+openmeteo = openmeteo_requests.Client(session=retry_session)
+
+# Define the Open-Meteo API URL and parameters
+url = "https://api.open-meteo.com/v1/forecast"
+params = {
+    "latitude": 45.5053313,
+    "longitude": -73.6163859,
+    "current": [
+        "temperature_2m", "relative_humidity_2m", "is_day",
+        "precipitation", "rain", "showers", "snowfall",
+        "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m"
+    ],
+    "timezone": "America/New_York",
+    "forecast_days": 1
+}
+
+@app.route('/weather_data')
+def weather_data():
+    """
+    Calls the Open-Meteo API and returns current weather data as JSON.
+    (Cached calls will update automatically after 1 hour.)
+    """
+    responses = openmeteo.weather_api(url, params=params)
+    response_weather = responses[0]
+    current = response_weather.Current()
+
+    # Extract and round the values to the nearest whole number.
+    weather = {
+        "temperature": round(current.Variables(0).Value()),
+        "relative_humidity": round(current.Variables(1).Value()),
+        "precipitation": round(current.Variables(3).Value()),
+        "wind_speed": round(current.Variables(7).Value())
+    }
+    return jsonify(weather)
+
+# =====================================================
 
 if __name__ == '__main__':
     # Disable the reloader to prevent the serial port from opening twice.
