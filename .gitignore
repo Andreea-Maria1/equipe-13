@@ -1,0 +1,55 @@
+# General Python
+__pycache__/
+*.py[cod]
+*.so
+*.swp
+.DS_Store
+
+# Virtual Environment
+venv/
+.env
+*.env
+*.venv
+
+# Flask Specific
+instance/
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# Compiled & Temporary Files
+*.out
+*.o
+*.a
+*.exe
+*.bin
+*.hex
+*.elf
+
+# Arduino
+*.ino.cpp
+*.eep
+*.elf
+*.hex
+*.lss
+*.map
+*.sym
+*.lst
+*.bin
+
+# VS Code & JetBrains IDEs
+.vscode/
+.idea/
+*.iml
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Package Managers
+pip-log.txt
+pip-delete-this-directory.txt
+
+# MacOS & Windows
+Thumbs.db
