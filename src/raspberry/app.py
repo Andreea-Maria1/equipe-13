@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for, Response, jsonify
 import cv2
 import serial
 import time
-import openmeteo_requests
+# import openmeteo_requests
 
 import requests_cache
 import pandas as pd
