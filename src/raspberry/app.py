@@ -38,22 +38,19 @@ def video_feed():
     """Route that provides the video feed."""
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
+# Original control endpoint (kept for compatibility; returns a redirect)
 @app.route('/control/<direction>')
 def control(direction):
-    """Route to send control commands to the Arduino."""
-    if direction == "forward":
-        print("Forward button pressed!")
-    elif direction == "backward":
-        print("Backward button pressed!")
-    elif direction == "left":
-        print("Left button pressed!")
-    elif direction == "right":
-        print("Right button pressed!")
+    valid_directions = [
+        "forward", "backward", "left", "right",
+        "forward-left", "forward-right", "backward-left", "backward-right"
+    ]
+    if direction in valid_directions:
+        print(f"{direction.capitalize()} button pressed!")
     else:
         print("Unknown command received:", direction)
 
-    # (Optional) If you want to send this command to the Arduino:
-    if ser and ser.is_open and direction in ["forward", "backward", "left", "right"]:
+    if ser and ser.is_open and direction in valid_directions:
         try:
             command = direction + "\n"  # Append newline.
             ser.write(command.encode())
@@ -71,6 +68,37 @@ def control(direction):
             print("Serial connection not available.")
 
     return redirect(url_for('index'))
+
+# New endpoint for AJAX control commands (used for continuous sending)
+@app.route('/control_command/<direction>', methods=['GET'])
+def control_command(direction):
+    valid_directions = [
+        "forward", "backward", "left", "right",
+        "forward-left", "forward-right", "backward-left", "backward-right"
+    ]
+    if direction in valid_directions:
+        print(f"{direction.capitalize()} command received via AJAX!")
+    else:
+        print("Unknown command received:", direction)
+
+    if ser and ser.is_open and direction in valid_directions:
+        try:
+            command = direction + "\n"
+            ser.write(command.encode())
+            print(f"Sent command to Arduino: {command.strip()}")
+            time.sleep(0.1)
+            if ser.in_waiting > 0:
+                response = ser.readline().decode().strip()
+                print("Arduino response:", response)
+            else:
+                print("No response from Arduino.")
+        except Exception as e:
+            print(f"Failed to send command '{direction}': {e}")
+    else:
+        if not ser or not ser.is_open:
+            print("Serial connection not available.")
+
+    return "OK"
 
 if __name__ == '__main__':
     # Disable the reloader to prevent the serial port from opening twice.
