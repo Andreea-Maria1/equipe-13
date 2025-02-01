@@ -4,14 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Camera, Controls, Date & Weather</title>
-    <!-- Import a Google Font -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
-    <!-- Link to your external CSS file -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
 <body>
-    <!-- Top Banner with Two Lines -->
+    <!-- Top Banner with Date, Time, and Weather -->
     <header id="top-banner">
         <div id="date-time-line">
             <span>Date: <span id="server-date">--</span></span> &nbsp;|&nbsp;
@@ -25,31 +23,28 @@
         </div>
     </header>
 
-    <!-- Main Content: Two Columns (Camera on Left, Controls on Right) -->
+    <!-- Main Content: Two Columns -->
     <main class="main-container">
-        <!-- Left Column: Video Stream (Camera) -->
+        <!-- Left Column: Video Stream -->
         <div class="left-column">
             <img src="{{ url_for('video_feed') }}" alt="Video Stream" class="video-stream">
         </div>
 
-        <!-- Right Column: Control Panel and Screenshot Button -->
+        <!-- Right Column: Controls, Screenshot, and Plant Identification -->
         <div class="right-column">
             <div id="control-panel">
-                <!-- Row 1 -->
                 <button data-direction="forward-left" onmousedown="startSending('forward-left')"
                     onmouseup="stopSending()" onmouseleave="stopSending()">↖</button>
                 <button data-direction="forward" onmousedown="startSending('forward')" onmouseup="stopSending()"
                     onmouseleave="stopSending()">↑</button>
                 <button data-direction="forward-right" onmousedown="startSending('forward-right')"
                     onmouseup="stopSending()" onmouseleave="stopSending()">↗</button>
-                <!-- Row 2 -->
                 <button data-direction="left" onmousedown="startSending('left')" onmouseup="stopSending()"
                     onmouseleave="stopSending()">←</button>
                 <button data-direction="stop" onmousedown="startSending('stop')" onmouseup="stopSending()"
                     onmouseleave="stopSending()">■</button>
                 <button data-direction="right" onmousedown="startSending('right')" onmouseup="stopSending()"
                     onmouseleave="stopSending()">→</button>
-                <!-- Row 3 -->
                 <button data-direction="backward-left" onmousedown="startSending('backward-left')"
                     onmouseup="stopSending()" onmouseleave="stopSending()">↙</button>
                 <button data-direction="backward" onmousedown="startSending('backward')" onmouseup="stopSending()"
@@ -60,6 +55,11 @@
             <div id="screenshot-control">
                 <button id="capture-btn" onclick="captureScreenshot()">Capture Screenshot</button>
                 <div id="capture-result"></div>
+            </div>
+            <!-- Identify Plant Section -->
+            <div id="identify-control" style="text-align: center; margin-top: 20px;">
+                <button id="identify-btn" onclick="identifyPlant()">Identify Plant</button>
+                <div id="identify-result" style="margin-top: 10px;"></div>
             </div>
         </div>
     </main>
@@ -104,7 +104,26 @@
                 .catch(error => console.error('Error capturing screenshot:', error));
         }
 
-        // Update weather data
+        // Identify plant function
+        function identifyPlant() {
+            fetch('/identify')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('identify-result').textContent = data.error;
+                    } else {
+                        document.getElementById('identify-result').innerHTML = `
+                            <h2>${data.plant_name}</h2>
+                            <p><strong>Confidence:</strong> ${(data.confidence * 100).toFixed(2)}%</p>
+                            <p><strong>Invasiveness:</strong> ${data.invasiveness}</p>
+                            <p><strong>Toxicity Level:</strong> ${data.toxicity}</p>
+                        `;
+                    }
+                })
+                .catch(error => console.error('Error identifying plant:', error));
+        }
+
+        // Update weather data (dummy implementation)
         function updateWeather() {
             fetch('/weather_data')
                 .then(response => response.json())
@@ -160,9 +179,7 @@
 
         // Initialize data on page load
         updateWeather();
-        setInterval(updateWeather, 3600000); // Update weather hourly
         updateDate();
-        setInterval(updateDate, 86400000); // Update date daily
         initializeTime();
     </script>
 </body>

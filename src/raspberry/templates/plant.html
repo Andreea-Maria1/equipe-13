@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Identifier</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+            background: #f4f4f4;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 20px;
+        }
+
+        img {
+            max-width: 300px;
+            margin-top: 20px;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #2196F3;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Upload Your Plant Image</h1>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" accept="image/*" required>
+        <button type="submit">Upload Image</button>
+    </form>
+
+    {% if data %}
+    <div id="result">
+        <h2>{{ data.plant_name }}</h2>
+        <p><strong>Confidence:</strong> {{ (data.probability * 100) | round(2) }}%</p>
+        <p><strong>Invasiveness:</strong> {{ invasiveness }}</p>
+        <p><strong>Toxicity Level:</strong> {{ toxicity }}</p>
+    </div>
+    {% elif error %}
+    <p>{{ error }}</p>
+    {% endif %}
+
+    <!-- Link back to the main page -->
+    <a href="{{ url_for('index') }}">Back to Main Interface</a>
+</body>
+
+</html>

@@ -1,19 +1,27 @@
-from flask import Flask, render_template, redirect, url_for, Response, jsonify
+from flask import Flask, render_template, redirect, url_for, Response, jsonify, request
 import cv2
 import serial
 import time
-# import openmeteo_requests
+import os
+from datetime import datetime
+import requests
+from dotenv import load_dotenv
+import io  # For in‑memory binary streams
 
-import pandas as pd
-# from retry_requests import retry
-import os  # Needed for file operations in capture endpoint
-from datetime import datetime  # For date and time endpoints
+load_dotenv()  # Load environment variables from the .env file
 
 app = Flask(__name__)
 
-# Initialize serial connection to Arduino on COM12.
+# ===================== PLANT.ID API CONFIGURATION =====================
+API_KEY = os.getenv("API_KEY")
+API_KEY_INVASIVE = os.getenv("API_KEY_INVASIVE")
+PLANT_ID_URL = "https://api.plant.id/v2/identify"
+PLANT_ID_URL_INVASIVE = "https://api.plant.id/v2/check"
+
+# ===================== SERIAL & CAMERA INITIALIZATION =====================
+# Update the serial port for your system. On Windows, use "COM12" (or the appropriate port)
 try:
-    ser = serial.Serial('/dev/ttyUSB0', 250000, timeout=1)
+    ser = serial.Serial('COM12', 250000, timeout=1)
     time.sleep(2)  # Allow the serial connection to settle.
     print("Serial connection established on COM12")
 except Exception as e:
@@ -34,19 +42,20 @@ def generate_frames():
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
+# ===================== MAIN INTERFACE ROUTES =====================
 @app.route('/')
 def index():
-    """Render the main page."""
+    """Render the main page with video stream, controls, and plant identification."""
     return render_template('index.html')
 
 @app.route('/video_feed')
 def video_feed():
-    """Route that provides the video feed."""
+    """Route that provides the video feed from the webcam."""
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-# Original control endpoint (kept for compatibility; returns a redirect)
 @app.route('/control/<direction>')
 def control(direction):
+    """Control endpoint for redirect-based commands (for legacy support)."""
     valid_directions = [
         "forward", "backward", "left", "right",
         "forward-left", "forward-right", "backward-left", "backward-right", "stop"
@@ -75,9 +84,9 @@ def control(direction):
 
     return redirect(url_for('index'))
 
-# New endpoint for AJAX control commands (used for continuous sending)
 @app.route('/control_command/<direction>', methods=['GET'])
 def control_command(direction):
+    """AJAX endpoint for continuous control commands."""
     valid_directions = [
         "forward", "backward", "left", "right",
         "forward-left", "forward-right", "backward-left", "backward-right", "stop"
@@ -130,62 +139,93 @@ def capture():
     # Return a link to the saved screenshot
     return f"Screenshot saved as <a href='/static/screenshots/{filename}' target='_blank'>{filename}</a>"
 
-# ================= Weather API Code (COMMENTED OUT) =================
-'''
-# Setup the Open-Meteo API client with cache and retry on error
-cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
-retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
-openmeteo = openmeteo_requests.Client(session=retry_session)
-
-# Define the Open-Meteo API URL and parameters
-url = "https://api.open-meteo.com/v1/forecast"
-params = {
-    "latitude": 45.5053313,
-    "longitude": -73.6163859,
-    "current": [
-        "temperature_2m", "relative_humidity_2m", "is_day",
-        "precipitation", "rain", "showers", "snowfall",
-        "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m"
-    ],
-    "timezone": "America/New_York",
-    "forecast_days": 1
-}
-
-@app.route('/weather_data')
-def weather_data():
-    """
-    Calls the Open-Meteo API and returns current weather data as JSON.
-    (Cached calls will update automatically after 1 hour.)
-    """
-    responses = openmeteo.weather_api(url, params=params)
-    response_weather = responses[0]
-    current = response_weather.Current()
-
-    # Extract and round the values to the nearest whole number.
-    weather = {
-        "temperature": round(current.Variables(0).Value()),
-        "relative_humidity": round(current.Variables(1).Value()),
-        "precipitation": round(current.Variables(3).Value()),
-        "wind_speed": round(current.Variables(7).Value())
-    }
-    return jsonify(weather)
-'''
-# =====================================================
-
-# ================= Date & Time Endpoints =================
+# ===================== DATE & TIME ENDPOINTS =====================
 @app.route('/date_today')
 def date_today():
-    """Return the current date (YYYY-MM-DD). This value should update once a day."""
+    """Return the current date (YYYY-MM-DD)."""
     today = datetime.now().strftime("%Y-%m-%d")
     return jsonify({"date": today})
 
 @app.route('/time_now')
 def time_now():
-    """Return the current time (HH:MM:SS). This value updates every second."""
+    """Return the current time (HH:MM:SS)."""
     now = datetime.now().strftime("%H:%M:%S")
     return jsonify({"time": now})
-# =====================================================
 
+# ===================== PLANT IDENTIFICATION ENDPOINT =====================
+@app.route('/identify', methods=['GET'])
+def identify():
+    """
+    Capture an image from the webcam, send it to the Plant.id APIs,
+    and return the identification result as JSON.
+    """
+    success, frame = camera.read()
+    if not success:
+        return jsonify({'error': 'Failed to capture image.'})
+    
+    # Encode frame as JPEG
+    ret, buffer = cv2.imencode('.jpg', frame)
+    if not ret:
+        return jsonify({'error': 'Failed to encode image.'})
+    
+    image_bytes = buffer.tobytes()
+    # Create a file‑like object from the image bytes
+    image_file = io.BytesIO(image_bytes)
+    image_file.name = 'screenshot.jpg'
+    
+    # Call the primary Plant.id API
+    response = requests.post(
+        PLANT_ID_URL,
+        files={"images": image_file},
+        data={"api_key": API_KEY, "organs": "leaf"}
+    )
+    
+    if response.status_code == 200:
+        data = response.json()
+        if data.get("suggestions"):
+            suggestion = data["suggestions"][0]
+        else:
+            return jsonify({'error': 'No plant identified.'})
+    else:
+        return jsonify({'error': 'Error connecting to Plant.id API.'})
+    
+    # Reset the file pointer and perform the invasive check
+    image_file.seek(0)
+    invasive_response = requests.post(
+        PLANT_ID_URL_INVASIVE,
+        files={"images": image_file},
+        data={"api_key": API_KEY_INVASIVE, "organs": "leaf"}
+    )
+    if invasive_response.status_code == 200:
+        invasive_data = invasive_response.json()
+        invasiveness = invasive_data.get("invasiveness", "Unknown")
+        toxicity = invasive_data.get("toxicity", "Unknown")
+    else:
+        invasiveness = "Unavailable"
+        toxicity = "Unavailable"
+    
+    result = {
+        "plant_name": suggestion.get("plant_name", "Unknown"),
+        "confidence": suggestion.get("probability", 0),
+        "invasiveness": invasiveness,
+        "toxicity": toxicity
+    }
+    return jsonify(result)
+
+# ===================== OPTIONAL: Dummy Weather Data Endpoint =====================
+# If you need weather data, uncomment or implement the actual API call.
+@app.route('/weather_data')
+def weather_data():
+    # Dummy weather data for testing purposes
+    dummy_weather = {
+        "temperature": -15,
+        "relative_humidity": 67,
+        "precipitation": 0,
+        "wind_speed": 8
+    }
+    return jsonify(dummy_weather)
+
+# ===================== RUN APP =====================
 if __name__ == '__main__':
     # Disable the reloader to prevent the serial port from opening twice.
     app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
