@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Arduino Control, Video Stream & Weather</title>
+    <title>Camera, Controls, Date & Weather</title>
     <!-- Import a Google Font -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
     <!-- Link to your external CSS file -->
@@ -11,57 +11,65 @@
 </head>
 
 <body>
-    <h1>Arduino Control Test, Video Stream & Weather</h1>
+    <!-- Top Banner with Two Lines -->
+    <header id="top-banner">
+        <div id="date-time-line">
+            <span>Date: <span id="server-date">--</span></span> &nbsp;|&nbsp;
+            <span>Time: <span id="server-time">--</span></span>
+        </div>
+        <div id="weather-line">
+            <span>Temp: <span id="temp">--</span> °C</span> &nbsp;|&nbsp;
+            <span>Humidity: <span id="humidity">--</span> %</span> &nbsp;|&nbsp;
+            <span>Precip: <span id="precipitation">--</span> mm</span> &nbsp;|&nbsp;
+            <span>Wind: <span id="wind_speed">--</span> km/h</span>
+        </div>
+    </header>
 
-    <!-- Weather Info Section -->
-    <div id="weather-info" style="text-align: center; margin-bottom: 20px;">
-        <h2>Current Weather</h2>
-        <p>Temperature: <span id="temp">--</span> °C</p>
-        <p>Relative Humidity: <span id="humidity">--</span> %</p>
-        <p>Precipitation: <span id="precipitation">--</span> mm</p>
-        <p>Wind Speed: <span id="wind_speed">--</span> km/h</p>
-    </div>
-
-    <div class="container">
-        <!-- Video Stream -->
-        <img src="{{ url_for('video_feed') }}" alt="Video Stream" class="video-stream">
-        <!-- Control Panel for 8 directions arranged in a 3x3 grid (center button is 'Stop') -->
-        <div id="control-panel">
-            <!-- Row 1 -->
-            <button data-direction="forward-left" onmousedown="startSending('forward-left')" onmouseup="stopSending()"
-                onmouseleave="stopSending()">Forward Left</button>
-            <button data-direction="forward" onmousedown="startSending('forward')" onmouseup="stopSending()"
-                onmouseleave="stopSending()">Forward</button>
-            <button data-direction="forward-right" onmousedown="startSending('forward-right')" onmouseup="stopSending()"
-                onmouseleave="stopSending()">Forward Right</button>
-            <!-- Row 2 -->
-            <button data-direction="left" onmousedown="startSending('left')" onmouseup="stopSending()"
-                onmouseleave="stopSending()">Left</button>
-            <button data-direction="stop" onmousedown="startSending('stop')" onmouseup="stopSending()"
-                onmouseleave="stopSending()">Stop</button>
-            <button data-direction="right" onmousedown="startSending('right')" onmouseup="stopSending()"
-                onmouseleave="stopSending()">Right</button>
-            <!-- Row 3 -->
-            <button data-direction="backward-left" onmousedown="startSending('backward-left')" onmouseup="stopSending()"
-                onmouseleave="stopSending()">Backward Left</button>
-            <button data-direction="backward" onmousedown="startSending('backward')" onmouseup="stopSending()"
-                onmouseleave="stopSending()">Backward</button>
-            <button data-direction="backward-right" onmousedown="startSending('backward-right')"
-                onmouseup="stopSending()" onmouseleave="stopSending()">Backward Right</button>
+    <!-- Main Content: Two Columns (Camera on Left, Controls on Right) -->
+    <main class="main-container">
+        <!-- Left Column: Video Stream (Camera) -->
+        <div class="left-column">
+            <img src="{{ url_for('video_feed') }}" alt="Video Stream" class="video-stream">
         </div>
 
-        <!-- Capture Screenshot Button -->
-        <div id="screenshot-control" style="text-align: center; margin-top: 20px;">
-            <button id="capture-btn" onclick="captureScreenshot()">Capture Screenshot</button>
-            <div id="capture-result"></div>
+        <!-- Right Column: Control Panel and Screenshot Button -->
+        <div class="right-column">
+            <div id="control-panel">
+                <!-- Row 1 -->
+                <button data-direction="forward-left" onmousedown="startSending('forward-left')"
+                    onmouseup="stopSending()" onmouseleave="stopSending()">↖</button>
+                <button data-direction="forward" onmousedown="startSending('forward')" onmouseup="stopSending()"
+                    onmouseleave="stopSending()">↑</button>
+                <button data-direction="forward-right" onmousedown="startSending('forward-right')"
+                    onmouseup="stopSending()" onmouseleave="stopSending()">↗</button>
+                <!-- Row 2 -->
+                <button data-direction="left" onmousedown="startSending('left')" onmouseup="stopSending()"
+                    onmouseleave="stopSending()">←</button>
+                <button data-direction="stop" onmousedown="startSending('stop')" onmouseup="stopSending()"
+                    onmouseleave="stopSending()">■</button>
+                <button data-direction="right" onmousedown="startSending('right')" onmouseup="stopSending()"
+                    onmouseleave="stopSending()">→</button>
+                <!-- Row 3 -->
+                <button data-direction="backward-left" onmousedown="startSending('backward-left')"
+                    onmouseup="stopSending()" onmouseleave="stopSending()">↙</button>
+                <button data-direction="backward" onmousedown="startSending('backward')" onmouseup="stopSending()"
+                    onmouseleave="stopSending()">↓</button>
+                <button data-direction="backward-right" onmousedown="startSending('backward-right')"
+                    onmouseup="stopSending()" onmouseleave="stopSending()">↘</button>
+            </div>
+            <div id="screenshot-control">
+                <button id="capture-btn" onclick="captureScreenshot()">Capture Screenshot</button>
+                <div id="capture-result"></div>
+            </div>
         </div>
-    </div>
+    </main>
 
     <!-- JavaScript Section -->
     <script>
         let intervalId = null;
+        let serverTime = null; // Will hold the server time as a Date object
 
-        // Called when a control button is pressed down
+        // Control button functions
         function startSending(direction) {
             if (intervalId !== null) {
                 clearInterval(intervalId);
@@ -72,7 +80,6 @@
             }, 100);
         }
 
-        // Called when the control button is released or the pointer leaves the button
         function stopSending() {
             if (intervalId !== null) {
                 clearInterval(intervalId);
@@ -80,7 +87,6 @@
             }
         }
 
-        // Sends the control command via AJAX
         function sendCommand(direction) {
             fetch(`/control_command/${direction}`)
                 .then(response => response.text())
@@ -98,7 +104,7 @@
                 .catch(error => console.error('Error capturing screenshot:', error));
         }
 
-        // Function to update weather info by fetching data from the /weather_data endpoint
+        // Update weather data
         function updateWeather() {
             fetch('/weather_data')
                 .then(response => response.json())
@@ -111,9 +117,53 @@
                 .catch(error => console.error('Error fetching weather data:', error));
         }
 
-        // Update weather on page load and then every hour (3600000 ms)
+        // Update date (fetched once a day)
+        function updateDate() {
+            fetch('/date_today')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('server-date').textContent = data.date;
+                })
+                .catch(error => console.error('Error fetching date:', error));
+        }
+
+        // Initialize time once from the server, then increment locally every second
+        function initializeTime() {
+            fetch('/time_now')
+                .then(response => response.json())
+                .then(data => {
+                    let parts = data.time.split(':');
+                    let now = new Date();
+                    now.setHours(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]), 0);
+                    serverTime = now;
+                    updateLocalTimeDisplay();
+                })
+                .catch(error => console.error('Error fetching time:', error));
+        }
+
+        function updateLocalTimeDisplay() {
+            if (serverTime) {
+                let hours = serverTime.getHours().toString().padStart(2, '0');
+                let minutes = serverTime.getMinutes().toString().padStart(2, '0');
+                let seconds = serverTime.getSeconds().toString().padStart(2, '0');
+                document.getElementById('server-time').textContent = `${hours}:${minutes}:${seconds}`;
+            }
+        }
+
+        // Increment time every second
+        setInterval(() => {
+            if (serverTime) {
+                serverTime.setSeconds(serverTime.getSeconds() + 1);
+                updateLocalTimeDisplay();
+            }
+        }, 1000);
+
+        // Initialize data on page load
         updateWeather();
-        setInterval(updateWeather, 3600000);
+        setInterval(updateWeather, 3600000); // Update weather hourly
+        updateDate();
+        setInterval(updateDate, 86400000); // Update date daily
+        initializeTime();
     </script>
 </body>
 

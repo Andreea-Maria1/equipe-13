@@ -8,6 +8,7 @@ import requests_cache
 import pandas as pd
 from retry_requests import retry
 import os  # Needed for file operations in capture endpoint
+from datetime import datetime  # For date and time endpoints
 
 app = Flask(__name__)
 
@@ -130,7 +131,8 @@ def capture():
     # Return a link to the saved screenshot
     return f"Screenshot saved as <a href='/static/screenshots/{filename}' target='_blank'>{filename}</a>"
 
-# ================= Weather API Code =================
+# ================= Weather API Code (COMMENTED OUT) =================
+'''
 # Setup the Open-Meteo API client with cache and retry on error
 cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
 retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
@@ -168,7 +170,21 @@ def weather_data():
         "wind_speed": round(current.Variables(7).Value())
     }
     return jsonify(weather)
+'''
+# =====================================================
 
+# ================= Date & Time Endpoints =================
+@app.route('/date_today')
+def date_today():
+    """Return the current date (YYYY-MM-DD). This value should update once a day."""
+    today = datetime.now().strftime("%Y-%m-%d")
+    return jsonify({"date": today})
+
+@app.route('/time_now')
+def time_now():
+    """Return the current time (HH:MM:SS). This value updates every second."""
+    now = datetime.now().strftime("%H:%M:%S")
+    return jsonify({"time": now})
 # =====================================================
 
 if __name__ == '__main__':

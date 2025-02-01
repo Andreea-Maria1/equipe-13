@@ -4,60 +4,64 @@ body {
     padding: 0;
     font-family: 'Roboto', sans-serif;
     background: linear-gradient(135deg, #e0eafc, #cfdef3);
+    color: #333;
+}
+
+/* Top Banner: Two Lines on One Banner */
+#top-banner {
+    width: 100%;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    padding: 5px 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    color: #333;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
-h1 {
-    margin-top: 20px;
-    text-align: center;
-    color: #444;
-}
-
-/* Weather Display Styling */
-#weather-info {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    text-align: center;
-}
-
-#weather-info h2 {
-    margin: 0 0 10px;
-    font-size: 24px;
-    color: #333;
-}
-
-#weather-info p {
-    margin: 5px 0;
-    font-size: 18px;
-}
-
-/* Container for video and control panel */
-.container {
-    max-width: 800px;
+#date-time-line,
+#weather-line {
     width: 100%;
-    background: #fff;
-    margin: 20px;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    font-size: 14px;
+    margin: 2px 0;
 }
 
-/* Video Stream Styling */
+/* Main Container: Two Columns */
+.main-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Left Column: Camera */
+.left-column {
+    flex: 2;
+    min-width: 300px;
+    text-align: center;
+    padding: 10px;
+}
+
 .video-stream {
-    display: block;
     width: 100%;
-    max-width: 640px;
+    max-width: 800px;
     border: 5px solid #ddd;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin: 0 auto 20px;
+}
+
+/* Right Column: Controls */
+.right-column {
+    flex: 1;
+    min-width: 250px;
+    padding: 10px;
 }
 
 /* Control Panel Styling */
@@ -65,12 +69,9 @@ h1 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-gap: 10px;
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
+    margin: 20px auto;
 }
 
-/* Button Styling */
 #control-panel button {
     padding: 15px;
     font-size: 16px;
@@ -93,27 +94,36 @@ h1 {
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Empty cell styling */
-#control-panel .center {
-    background: none;
-    border: none;
-}
-
-/* Responsive adjustments */
-@media (max-width: 480px) {
-    #control-panel button {
-        padding: 10px;
-        font-size: 14px;
-    }
-}
-
 /* Screenshot Control Styling */
 #screenshot-control {
-    margin-top: 20px;
     text-align: center;
+    margin-top: 20px;
 }
 
 #screenshot-control button {
     padding: 10px 20px;
     font-size: 16px;
+}
+
+/* Responsive Adjustments for Mobile Devices */
+@media (max-width: 768px) {
+    .main-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .left-column,
+    .right-column {
+        width: 100%;
+        max-width: 500px;
+    }
+
+    #control-panel {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    #control-panel button {
+        padding: 10px;
+        font-size: 14px;
+    }
 }
