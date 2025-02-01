@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 # Initialize serial connection to Arduino on COM12.
 try:
-    ser = serial.Serial('/dev/ttyACM0',, 9600, timeout=1)
+    ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
     time.sleep(2)  # Allow the serial connection to settle.
     print("Serial connection established on COM12")
 except Exception as e:
