@@ -107,37 +107,6 @@ def control(direction):
 
     return redirect(url_for('index'))
 
-@app.route('/control/<direction>')
-def control(direction):
-    """Control endpoint for redirect-based commands (for legacy support)."""
-    valid_directions = [
-        "forward", "backward", "left", "right",
-        "forward-left", "forward-right", "backward-left", "backward-right", "stop"
-    ]
-    if direction in valid_directions:
-        print(f"{direction.capitalize()} button pressed!")
-    else:
-        print("Unknown command received:", direction)
-
-    if ser and ser.is_open and direction in valid_directions:
-        try:
-            command = direction + "\n"  # Append newline.
-            ser.write(command.encode())
-            print(f"Sent command to Arduino: {command.strip()}")
-            time.sleep(0.1)
-            if ser.in_waiting > 0:
-                response = ser.readline().decode().strip()
-                print("Arduino response:", response)
-            else:
-                print("No response from Arduino.")
-        except Exception as e:
-            print(f"Failed to send command '{direction}': {e}")
-    else:
-        if not ser or not ser.is_open:
-            print("Serial connection not available.")
-
-    return redirect(url_for('index'))
-
 @app.route('/control_command/<direction>', methods=['GET'])
 def control_command(direction):
     """AJAX endpoint for continuous control commands."""
@@ -243,26 +212,19 @@ def identify():
     else:
         return jsonify({'error': 'Error connecting to Plant.id API.'})
     
-    # Reset the file pointer and perform the invasive check
-    image_file.seek(0)
-    invasive_response = requests.post(
-        PLANT_ID_URL_INVASIVE,
-        files={"images": image_file},
-        data={"api_key": API_KEY_INVASIVE, "organs": "leaf"}
-    )
-    if invasive_response.status_code == 200:
-        invasive_data = invasive_response.json()
-        invasiveness = invasive_data.get("invasiveness", "Unknown")
-        toxicity = invasive_data.get("toxicity", "Unknown")
+    # Use our CSV to determine invasiveness, case-insensitively.
+    plant_name = suggestion.get("plant_name", "Unknown")
+    plant_name_lower = plant_name.strip().lower()
+    if plant_name_lower in invasive_species:
+        # "oui" indicates invasive; "non" indicates not invasive.
+        invasiveness = "Invasive" if invasive_species[plant_name_lower] == "oui" else "Not invasive"
     else:
-        invasiveness = "Unavailable"
-        toxicity = "Unavailable"
+        invasiveness = "Unknown"
     
-    # Build the result without including the "confidence" field
+    # Build the result without including toxicity information.
     result = {
-        "plant_name": suggestion.get("plant_name", "Unknown"),
-        "invasiveness": invasiveness,
-        "toxicity": toxicity
+        "plant_name": plant_name,
+        "invasiveness": invasiveness
     }
     return jsonify(result)
 
