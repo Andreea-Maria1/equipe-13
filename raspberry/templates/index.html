@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Arduino Control & Video Stream</title>
+    <style>
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Arduino Control test ok & Video Stream</h1>
+
+    <!-- Display the video stream -->
+    <img src="{{ url_for('video_feed') }}" width="640" height="480" alt="Video Stream">
+
+    <!-- Control buttons -->
+    <div>
+        <a href="{{ url_for('control', direction='forward') }}"><button>Forward</button></a>
+    </div>
+    <div>
+        <a href="{{ url_for('control', direction='left') }}"><button>Left</button></a>
+        <a href="{{ url_for('control', direction='backward') }}"><button>Backward</button></a>
+        <a href="{{ url_for('control', direction='right') }}"><button>Right</button></a>
+    </div>
+</body>
+</html>
