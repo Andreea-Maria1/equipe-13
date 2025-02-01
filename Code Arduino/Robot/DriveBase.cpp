@@ -1,8 +1,5 @@
-#ifndef DriveBase_h
-#define DriveBase_h
 #include "Arduino.h"
 #include <AFMotor.h>
-
 #include "DriveBase.h"
 
 DriveBase::DriveBase(AF_DCMotor* FR_Motor, AF_DCMotor* FL_Motor, AF_DCMotor* BR_Motor, AF_DCMotor* BL_Motor) {
@@ -18,10 +15,12 @@ void DriveBase::drive(int vx, int vy, int angularVelocity) {
   int BR_speed = vy - vx + angularVelocity;
   int BL_speed = vy + vx - angularVelocity;
 
-  dataToSend->FR_Motor_Speed_Data = FR_speed;
-  dataToSend->FL_Motor_Speed_Data = FL_speed;
-  dataToSend->BR_Motor_Speed_Data = BR_speed;
-  dataToSend->BL_Motor_Speed_Data = BL_speed;
+  // Si vous souhaitez utiliser dataToSend, déclarez-le correctement.
+  // Sinon, vous pouvez laisser ces lignes commentées ou les supprimer.
+  // dataToSend->FR_Motor_Speed_Data = FR_speed;
+  // dataToSend->FL_Motor_Speed_Data = FL_speed;
+  // dataToSend->BR_Motor_Speed_Data = BR_speed;
+  // dataToSend->BL_Motor_Speed_Data = BL_speed;
 
   setMotor(FR_Motor, FR_speed);
   setMotor(FL_Motor, FL_speed);
@@ -29,15 +28,13 @@ void DriveBase::drive(int vx, int vy, int angularVelocity) {
   setMotor(BL_Motor, BL_speed);
 }
 
-
-void DriveBase::setMotor(AF_DCMotor* motor, int speed){
-  if(speed == 0) {
-    motor->run(RELEASE);                  
+void DriveBase::setMotor(AF_DCMotor* motor, int speed) {
+  if (speed == 0) {
+    motor->run(RELEASE);
   } else {
-    motor->run(speed < 0 ? BACKWARD : FORWARD); 
+    motor->run(speed < 0 ? BACKWARD : FORWARD);
   }
-
-  speed = constrain(abs(speed), 0, 240);        
-  motor->setSpeed(speed); 
+  
+  speed = constrain(abs(speed), 0, 240);
+  motor->setSpeed(speed);
 }
-
