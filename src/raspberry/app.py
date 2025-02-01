@@ -44,7 +44,7 @@ PLANT_ID_URL_INVASIVE = "https://api.plant.id/v2/check"
 # ===================== SERIAL & CAMERA INITIALIZATION =====================
 # Update the serial port for your system. On Windows, use "COM12" (or the appropriate port)
 try:
-    ser = serial.Serial('COM12', 250000, timeout=1)
+    ser = serial.Serial('ttyUSB0', 250000, timeout=1)
     time.sleep(2)  # Allow the serial connection to settle.
     print("Serial connection established on COM12")
 except Exception as e:
