@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, Response, jsonify, request
+from flask import Flask, render_template, redirect, url_for, Response, jsonify, request 
 import cv2
 import serial
 import time
@@ -204,9 +204,9 @@ def identify():
         invasiveness = "Unavailable"
         toxicity = "Unavailable"
     
+    # Build the result without including the "confidence" field
     result = {
         "plant_name": suggestion.get("plant_name", "Unknown"),
-        "confidence": suggestion.get("probability", 0),
         "invasiveness": invasiveness,
         "toxicity": toxicity
     }
