@@ -5,7 +5,7 @@ import time
 # import openmeteo_requests
 
 import pandas as pd
-from retry_requests import retry
+# from retry_requests import retry
 import os  # Needed for file operations in capture endpoint
 from datetime import datetime  # For date and time endpoints
 
