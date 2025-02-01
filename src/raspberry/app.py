@@ -2,6 +2,9 @@ from flask import Flask, render_template, redirect, url_for, Response
 import cv2
 import serial
 import time
+import python_weather
+import asyncio
+import os
 
 app = Flask(__name__)
 
@@ -43,7 +46,7 @@ def video_feed():
 def control(direction):
     valid_directions = [
         "forward", "backward", "left", "right",
-        "forward-left", "forward-right", "backward-left", "backward-right"
+        "forward-left", "forward-right", "backward-left", "backward-right", "stop"
     ]
     if direction in valid_directions:
         print(f"{direction.capitalize()} button pressed!")
@@ -74,7 +77,7 @@ def control(direction):
 def control_command(direction):
     valid_directions = [
         "forward", "backward", "left", "right",
-        "forward-left", "forward-right", "backward-left", "backward-right"
+        "forward-left", "forward-right", "backward-left", "backward-right", "stop"
     ]
     if direction in valid_directions:
         print(f"{direction.capitalize()} command received via AJAX!")
@@ -99,6 +102,30 @@ def control_command(direction):
             print("Serial connection not available.")
 
     return "OK"
+
+@app.route('/capture', methods=['GET'])
+def capture():
+    """Capture a screenshot from the webcam and save it."""
+    success, frame = camera.read()
+    if not success:
+        return "Failed to capture screenshot", 500
+
+    # Ensure the screenshots directory exists inside the static folder
+    screenshot_dir = os.path.join(app.static_folder, 'screenshots')
+    if not os.path.exists(screenshot_dir):
+        os.makedirs(screenshot_dir)
+
+    # Generate a filename based on timestamp
+    timestamp = int(time.time())
+    filename = f'screenshot_{timestamp}.jpg'
+    file_path = os.path.join(screenshot_dir, filename)
+
+    # Save the image
+    cv2.imwrite(file_path, frame)
+    print(f"Screenshot saved: {file_path}")
+
+    # Return a link to the saved screenshot
+    return f"Screenshot saved as <a href='/static/screenshots/{filename}' target='_blank'>{filename}</a>"
 
 if __name__ == '__main__':
     # Disable the reloader to prevent the serial port from opening twice.

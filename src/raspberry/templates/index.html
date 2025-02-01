@@ -15,7 +15,8 @@
     <div class="container">
         <!-- Display the video stream -->
         <img src="{{ url_for('video_feed') }}" alt="Video Stream" class="video-stream">
-        <!-- Control panel for eight directions arranged in a 3x3 grid. The center cell is left empty. -->
+        <!-- Control panel for eight directions arranged in a 3x3 grid.
+             The center cell now contains the Stop button. -->
         <div id="control-panel">
             <!-- Row 1 -->
             <button data-direction="forward-left" onmousedown="startSending('forward-left')" onmouseup="stopSending()"
@@ -27,7 +28,8 @@
             <!-- Row 2 -->
             <button data-direction="left" onmousedown="startSending('left')" onmouseup="stopSending()"
                 onmouseleave="stopSending()">Left</button>
-            <div class="center"></div>
+            <button data-direction="stop" onmousedown="startSending('stop')" onmouseup="stopSending()"
+                onmouseleave="stopSending()">Stop</button>
             <button data-direction="right" onmousedown="startSending('right')" onmouseup="stopSending()"
                 onmouseleave="stopSending()">Right</button>
             <!-- Row 3 -->
@@ -37,6 +39,11 @@
                 onmouseleave="stopSending()">Backward</button>
             <button data-direction="backward-right" onmousedown="startSending('backward-right')"
                 onmouseup="stopSending()" onmouseleave="stopSending()">Backward Right</button>
+        </div>
+        <!-- Capture Screenshot Button -->
+        <div id="screenshot-control" style="text-align: center; margin-top: 20px;">
+            <button id="capture-btn" onclick="captureScreenshot()">Capture Screenshot</button>
+            <div id="capture-result"></div>
         </div>
     </div>
 
@@ -73,6 +80,16 @@
                     console.log(`Command ${direction} sent, response: ${data}`);
                 })
                 .catch(error => console.error('Error sending command:', error));
+        }
+
+        // Capture screenshot function
+        function captureScreenshot() {
+            fetch('/capture')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('capture-result').innerHTML = data;
+                })
+                .catch(error => console.error('Error capturing screenshot:', error));
         }
     </script>
 </body>

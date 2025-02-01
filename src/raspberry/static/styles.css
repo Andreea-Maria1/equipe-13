@@ -16,6 +16,22 @@ h1 {
     color: #444;
 }
 
+/* Weather Display Styling */
+#weather-display {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px 20px;
+    margin: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+#weather-display h2 {
+    margin: 0 0 10px;
+    font-size: 20px;
+}
+
 /* Container for video and control panel */
 .container {
     max-width: 800px;
@@ -83,4 +99,15 @@ h1 {
         padding: 10px;
         font-size: 14px;
     }
+}
+
+/* Optional: Style for the screenshot control section */
+#screenshot-control {
+    margin-top: 20px;
+    text-align: center;
+}
+
+#screenshot-control button {
+    padding: 10px 20px;
+    font-size: 16px;
 }
