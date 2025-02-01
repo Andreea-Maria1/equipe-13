@@ -1,5 +1,6 @@
 #include "DriveBase.h"
-#include "CapteurUltrasonique.h"  // Assurez-vous que ce fichier existe et est correct
+#include "CapteurUltrasonique.h"  
+#include "customPID.h"
 
 #define FR_MOTOR_PIN 2
 #define FL_MOTOR_PIN 1
@@ -12,11 +13,11 @@ AF_DCMotor BR_Motor(BR_MOTOR_PIN);
 AF_DCMotor BL_Motor(BL_MOTOR_PIN);
 
 DriveBase robot(&FR_Motor, &FL_Motor, &BR_Motor, &BL_Motor);
+customPID pid;
 
 void setup() {
   Serial.begin(250000);
   
-  // Exemple de receivedDatae pour déplacer le robot
   while (!Serial) {
     ;
   }
