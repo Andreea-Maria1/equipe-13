@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, Response, jsonify, request 
+from flask import Flask, render_template, redirect, url_for, Response, jsonify, request  
 import cv2
 import serial
 import time
@@ -7,10 +7,33 @@ from datetime import datetime
 import requests
 from dotenv import load_dotenv
 import io  # For in‑memory binary streams
+import csv
 
 load_dotenv()  # Load environment variables from the .env file
 
 app = Flask(__name__)
+
+# ===================== LOAD INVASIVE CSV =====================
+# Assume your CSV is located at: <project_root>/data/invasive.csv
+# CSV content example:
+# Fallopia japonica,Oui
+# Heracleum mantegazzianum,Oui
+# Ailanthus altissima,Oui
+# Pueraria montana,Oui
+# Impatiens glandulifera,Non
+
+invasive_species = {}
+csv_path = os.path.join(os.path.dirname(__file__), 'data', 'invasive.csv')
+if os.path.exists(csv_path):
+    with open(csv_path, newline='', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if len(row) >= 2:
+                species = row[0].strip().lower()  # Make key lowercase for case-insensitive matching
+                status = row[1].strip().lower()   # Expected "oui" or "non"
+                invasive_species[species] = status
+else:
+    print("CSV file not found:", csv_path)
 
 # ===================== PLANT.ID API CONFIGURATION =====================
 API_KEY = os.getenv("API_KEY")
@@ -189,31 +212,23 @@ def identify():
     else:
         return jsonify({'error': 'Error connecting to Plant.id API.'})
     
-    # Reset the file pointer and perform the invasive check
-    image_file.seek(0)
-    invasive_response = requests.post(
-        PLANT_ID_URL_INVASIVE,
-        files={"images": image_file},
-        data={"api_key": API_KEY_INVASIVE, "organs": "leaf"}
-    )
-    if invasive_response.status_code == 200:
-        invasive_data = invasive_response.json()
-        invasiveness = invasive_data.get("invasiveness", "Unknown")
-        toxicity = invasive_data.get("toxicity", "Unknown")
+    # Use our CSV to determine invasiveness, case-insensitively.
+    plant_name = suggestion.get("plant_name", "Unknown")
+    plant_name_lower = plant_name.strip().lower()
+    if plant_name_lower in invasive_species:
+        # "oui" indicates invasive; "non" indicates not invasive.
+        invasiveness = "Invasive" if invasive_species[plant_name_lower] == "oui" else "Not invasive"
     else:
-        invasiveness = "Unavailable"
-        toxicity = "Unavailable"
+        invasiveness = "Unknown"
     
-    # Build the result without including the "confidence" field
+    # Build the result without including toxicity information.
     result = {
-        "plant_name": suggestion.get("plant_name", "Unknown"),
-        "invasiveness": invasiveness,
-        "toxicity": toxicity
+        "plant_name": plant_name,
+        "invasiveness": invasiveness
     }
     return jsonify(result)
 
 # ===================== OPTIONAL: Dummy Weather Data Endpoint =====================
-# If you need weather data, uncomment or implement the actual API call.
 @app.route('/weather_data')
 def weather_data():
     # Dummy weather data for testing purposes
