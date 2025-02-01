@@ -32,7 +32,7 @@ class customPID {
     float P_Y;
     float D_Y;
 
-    float previousErrorZ;          à
+    float previousErrorZ;
     float previousErrorX;
     float previousErrorY;
     unsigned long previousMillisZ;  
