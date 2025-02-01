@@ -41,6 +41,7 @@ int speedX = 0, speedY = 0, speedZ = 0;
 uint16_t frontDistanceValue = 0;
 uint16_t leftDistanceValue = 0;
 uint16_t rightDistanceValue = 0;
+uint8_t sensorTurn = 0;
 
 void setup() {
   Serial.begin(250000);
@@ -75,24 +76,24 @@ void loop() {
       speedZ = 0;
     }
     else if (receivedData == "left") {
-      speedX = -200;
+      speedX = 200;
       speedY = 0;
       speedZ = 0;
     }
     else if (receivedData == "right") {
-      speedX = 0;
-      speedY = 200;
-      speedZ = 0;
-    }
-    else if (receivedData == "forward_left") {
       speedX = -200;
-      speedY = 200;
+      speedY = 0;
       speedZ = 0;
     }
-    else if (receivedData == "forward_right") {
-      speedX = 200;
-      speedY = 200;
-      speedZ = 0;
+    else if (receivedData == "forward-left") {
+      speedX = 0;
+      speedY = 0;
+      speedZ = 200;
+    }
+    else if (receivedData == "forward-right") {
+      speedX = 0;
+      speedY = 0;
+      speedZ = -200;
     }
     else if (receivedData == "stop") {
       speedX = 0;
@@ -104,7 +105,7 @@ void loop() {
       Serial.println("Unknown receivedData.");
       autoLoopCounter++;
 
-      if (autoLoopCounter > 100) {
+      if (autoLoopCounter > 10) {
         speedX = 0;
         speedY = 0;
         speedZ = 0;
@@ -113,10 +114,11 @@ void loop() {
 
     delay(10);
     int zAdjustement = (int)(pid.zCorrection(speedZ, z));
+    readDistance(); 
     avoidObstacle();
     Serial.print("Speed z : ");
     Serial.println(z);
-    robot.drive(speedZ, speedY, zAdjustement);
+    robot.drive(speedX, speedY, zAdjustement);
 }
 
 
