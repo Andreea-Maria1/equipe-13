@@ -42,13 +42,14 @@ PLANT_ID_URL = "https://api.plant.id/v2/identify"
 PLANT_ID_URL_INVASIVE = "https://api.plant.id/v2/check"
 
 # ===================== SERIAL & CAMERA INITIALIZATION =====================
-# Update the serial port for your system. On Windows, use "COM12" (or the appropriate port)
+# Update the serial port for your system. On Linux (e.g., Raspberry Pi), use "/dev/ttyUSB0"
 try:
-    ser = serial.Serial('ttyUSB0', 250000, timeout=1)
+    print("Attempting to open serial port /dev/ttyUSB0")
+    ser = serial.Serial('/dev/ttyUSB0', 250000, timeout=1)
     time.sleep(2)  # Allow the serial connection to settle.
-    print("Serial connection established on COM12")
+    print("Serial connection established on /dev/ttyUSB0")
 except Exception as e:
-    print(f"Error connecting to Arduino on COM12: {e}")
+    print(f"Error connecting to Arduino on /dev/ttyUSB0: {e}")
     ser = None
 
 # Initialize the webcam (0 is typically the default).
